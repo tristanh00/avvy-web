@@ -26,7 +26,8 @@ const actions = {
         domain = await api.loadDomain(_domain)
         dispatch(services.names.actions.addRecord(_domain, domain.hash))
         dispatch(services.names.actions.checkIsRevealed(domain.hash))
-        if (domain.status === domain.constants.DOMAIN_STATUSES.REGISTERED_SELF || domain.status === domain.constants.DOMAIN_STATUSES.REGISTERED_OTHER) {
+        let isExpired = domain.expiresAt < Date.now() / 1000
+        if (!isExpired && (domain.status === domain.constants.DOMAIN_STATUSES.REGISTERED_SELF || domain.status === domain.constants.DOMAIN_STATUSES.REGISTERED_OTHER)) {
           dispatch(actions.loadRecords(_domain))
           dispatch(actions.loadReverseRecords(_domain))
         }

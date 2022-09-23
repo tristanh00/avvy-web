@@ -211,7 +211,8 @@ class Register extends React.PureComponent {
   renderName(name, index) {
     const nameData = this.props.nameData[name]
     if (!nameData) return null
-    if (nameData.status !== nameData.constants.DOMAIN_STATUSES.AVAILABLE && nameData.status !== nameData.constants.DOMAIN_STATUSES.REGISTERED_SELF) return null
+    const isExpired = Date.now() >= nameData.expiresAt * 1000 
+    if (nameData.status !== nameData.constants.DOMAIN_STATUSES.AVAILABLE && nameData.status !== nameData.constants.DOMAIN_STATUSES.REGISTERED_SELF && !isExpired) return null
     const isRenewal = nameData.status === nameData.constants.DOMAIN_STATUSES.REGISTERED_SELF
     return (
       <div key={index} className='bg-gray-100 rounded-lg mb-4 p-4 dark:bg-gray-800'>
@@ -267,7 +268,8 @@ class Register extends React.PureComponent {
     const hasRegistrationPremium = this.props.registrationPremium.gt(ethers.BigNumber.from('0'))
     const unavailable = []
     const total = names.reduce((sum, curr) => {
-      if (nameData[curr].status !== nameData[curr].constants.DOMAIN_STATUSES.AVAILABLE && nameData[curr].status !== nameData[curr].constants.DOMAIN_STATUSES.REGISTERED_SELF) {
+      const isExpired = Date.now() >= nameData[curr].expiresAt * 1000 
+      if (nameData[curr].status !== nameData[curr].constants.DOMAIN_STATUSES.AVAILABLE && nameData[curr].status !== nameData[curr].constants.DOMAIN_STATUSES.REGISTERED_SELF && !isExpired) {
         unavailable.push(curr)
         return sum
       }

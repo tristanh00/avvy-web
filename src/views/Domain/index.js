@@ -238,6 +238,7 @@ class Domain extends React.PureComponent {
     let account = services.provider.getAccount()
     const isOwned = account ? account.toLowerCase() === this.props.domain.owner.toLowerCase() : false
     const isExpired = Date.now() >= this.props.domain.expiresAt * 1000 
+    const isGracePeriod = isExpired && Date.now() <= (this.props.domain.expiresAt + 2592000) * 1000
     const hasLoadedPrivacy = !!this.props.isRevealed && (this.props.isRevealed[this.props.domain.hash] != undefined)
     if (!this.avvy) return
     
@@ -321,9 +322,19 @@ class Domain extends React.PureComponent {
               <div>
                 <div className='font-bold'>{'Expiry'}</div>
                 <div className='flex items-center'>
-                  {isExpired ? (
+                  {isExpired && isGracePeriod ? (
                     <div>
+                      Expired (Grace Period)
+                    </div>
+                  ) : isExpired ? (
+                    <div className='flex items-center'>
                       Expired
+                      {this.state.connected ? (
+                        <components.buttons.Transparent onClick={(navigator) => {
+                          this.props.renewDomain(this.props.domain.domain)
+                          services.linking.navigate(navigator, 'Register')
+                        }}><div className='ml-2 inline-block cursor-pointer text-alert-blue underline'>{'Register'}</div></components.buttons.Transparent>
+                      ) : null}
                     </div>
                   ) : (
                     <div>
@@ -391,6 +402,10 @@ class Domain extends React.PureComponent {
               <div className='mt-4 w-full text-center'>
                 <components.Spinner />
               </div>
+            ) : isExpired ? (
+              <div className='mt-4 text-sm'>
+                {'Records are disabled for expired domains.'}
+              </div>
             ) : this.props.records.length === 0 ? (
               <div className='mt-4 text-sm flex items-center'>
                 <div>{'No records have been set.'}</div>
@@ -457,6 +472,10 @@ class Domain extends React.PureComponent {
             {this.props.isLoadingReverseRecords ? (
               <div className='mt-4 w-full text-center'>
                 <components.Spinner />
+              </div>
+            ) : isExpired ? (
+              <div className='mt-4 text-sm'>
+                {'Reverse Records are disabled for expired domains.'}
               </div>
             ) : (
               <div className='mt-4 text-sm'>
